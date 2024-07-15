@@ -1,0 +1,39 @@
+---
+- name: Provision AWS Infrastructure
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Create EC2 Instance
+      ec2:
+        key_name: my-keypair
+        instance_type: t2.micro
+        image: ami-0120312a799d01943  
+        region: us-east-1
+        vpc_subnet_id: subnet-0484b30eaef0c300b-12345678  
+        assign_public_ip: yes
+        group: my-security-group
+        instance_tags:
+          Name: MyWebServer
+      register: ec2_instance
+
+    - name: Print EC2 Instance IP
+      debug:
+        var: ec2_instance.instances[0].public_ip
+
+    - name: Create RDS MySQL Instance
+      rds:
+        command: create
+        instance_name: my-rds-instance
+        db_instance_identifier: my-rds-instance
+        allocated_storage: 20
+        instance_class: db.t2.micro
+        engine: MySQL
+        master_username: mydbuser
+        master_user_password: mydbpassword
+        vpc_security_group_ids: sg-12sg-082d899df21b40e2c345678  
+        region: us-east-1
+      register: rds_instance
+
+    - name: Print RDS Endpoint
+      debug:
+        var: rds_instance.endpoint
